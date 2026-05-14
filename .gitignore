@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Env vars / secrets
+.env
+.env.local
+.streamlit/secrets.toml
+
+# Runtime data (업로드 파일)
+data/*
+!data/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
