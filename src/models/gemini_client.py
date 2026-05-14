@@ -6,6 +6,17 @@ from .base import BaseModelClient
 from ..prompts.templates import SYSTEM_PROMPT
 
 
+def list_models() -> list[str]:
+    """Gemini에서 generateContent를 지원하는 모델 목록."""
+    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+    return sorted(
+        m.name.removeprefix("models/")
+        for m in genai.list_models()
+        if "generateContent" in m.supported_generation_methods
+        and m.name.startswith("models/gemini")
+    )
+
+
 class GeminiClient(BaseModelClient):
     def __init__(self, model: str = "gemini-1.5-flash") -> None:
         genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))

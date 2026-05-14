@@ -1,15 +1,12 @@
 import streamlit as st
 
 from src.files.storage import save_upload, list_uploads, delete_upload
+from src.models import list_all_models
 
-MODEL_OPTIONS = [
-    "openai/gpt-4o-mini",
-    "openai/gpt-4o",
-    "gemini/gemini-1.5-flash",
-    "ollama/llama3.1",
-    "ollama/qwen2.5",
-    "ollama/mistral",
-]
+
+@st.cache_data(ttl=3600, show_spinner="모델 목록 조회 중...")
+def _fetch_models() -> list[str]:
+    return list_all_models()
 
 
 def render_sidebar() -> dict:
@@ -21,7 +18,11 @@ def render_sidebar() -> dict:
 
     with st.sidebar:
         st.header("설정")
-        model = st.selectbox("모델", MODEL_OPTIONS)
+        options = _fetch_models()
+        model = st.selectbox("모델", options)
+        if st.button("🔄 모델 목록 새로고침", use_container_width=True):
+            _fetch_models.clear()
+            st.rerun()
         server = st.selectbox("실행 서버", ["로컬", "원격"])
 
         st.divider()
