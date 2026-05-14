@@ -4,9 +4,12 @@ from src.models import get_client
 
 
 def render_chat(config: dict) -> None:
-    """채팅 영역: 멀티턴 대화 + 선택된 provider 호출."""
+    """채팅 영역: 멀티턴 대화 히스토리. 파일은 사이드바에서 관리."""
     st.title("cowork-llm-lab")
-    st.file_uploader("엑셀 업로드", type=["xlsx"], accept_multiple_files=True)
+
+    files = config.get("files", [])
+    if files:
+        st.caption(f"📂 사용 가능한 파일 ({len(files)}): {', '.join(f.name for f in files)}")
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
