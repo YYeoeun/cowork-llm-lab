@@ -1,5 +1,7 @@
+import pandas as pd
 import streamlit as st
 
+from src.files.excel import df_to_markdown, df_to_xlsx_bytes
 from src.models import get_client
 from src.prompts.pipeline import process
 
@@ -17,10 +19,14 @@ def render_chat(config: dict) -> None:
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "artifacts" not in st.session_state:
+        st.session_state.artifacts = {}
 
-    for msg in st.session_state.messages:
+    for i, msg in enumerate(st.session_state.messages):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+            if i in st.session_state.artifacts:
+                _render_artifact(st.session_state.artifacts[i], key=f"art_{i}")
 
     prompt = st.chat_input("프롬프트를 입력하세요")
     if not prompt:
@@ -31,6 +37,7 @@ def render_chat(config: dict) -> None:
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
+        artifact: dict | None = None
         try:
             client = get_client(config["model"])
             with st.spinner("응답 생성 중..."):
@@ -43,6 +50,58 @@ def render_chat(config: dict) -> None:
             reply = f"`{config['model']}` 제공자는 아직 연동되지 않았습니다."
         except Exception as e:
             reply = f"오류가 발생했습니다: `{type(e).__name__}: {e}`"
-        st.markdown(reply)
 
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.markdown(reply)
+        st.session_state.messages.append({"role": "assistant", "content": reply})
+        if artifact is not None:
+            idx = len(st.session_state.messages) - 1
+            st.session_state.artifacts[idx] = artifact
+            _render_artifact(artifact, key=f"art_{idx}")
+
+
+def _render_artifact(artifact: dict, key: str) -> None:
+    """파이프라인 결과(result) + xlsx/md 다운로드 버튼을 렌더링."""
+    if artifact.get("retried"):
+        st.caption(f"🔄 1회 재시도됨 (첫 시도 에러: `{artifact.get('first_error')}`)")
+
+    error = artifact.get("error")
+    if error:
+        st.error(f"코드 실행 실패: `{error}`")
+        with st.expander("실행을 시도한 코드 보기", expanded=False):
+            st.code(artifact.get("code", "(코드 없음)"), language="python")
+        st.caption(
+            "💡 동일 프롬프트로 한 번 더 보내거나, 프롬프트에 컬럼명/원하는 출력 형태를 더 구체적으로 적어보세요."
+        )
+        return
+
+    result = artifact.get("result")
+
+    if isinstance(result, pd.DataFrame):
+        st.dataframe(result, use_container_width=True)
+        col_xlsx, col_md = st.columns(2)
+        col_xlsx.download_button(
+            "xlsx 다운로드",
+            data=df_to_xlsx_bytes(result),
+            file_name="result.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"{key}_xlsx",
+        )
+        col_md.download_button(
+            "markdown 다운로드",
+            data=df_to_markdown(result),
+            file_name="result.md",
+            mime="text/markdown",
+            key=f"{key}_md",
+        )
+    elif result is not None:
+        text = str(result)
+        st.code(text)
+        st.download_button(
+            "markdown 다운로드",
+            data=text,
+            file_name="result.md",
+            mime="text/markdown",
+            key=f"{key}_md",
+        )
+    else:
+        st.info("코드가 실행되었지만 `result` 변수가 정의되지 않았습니다.")
