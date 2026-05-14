@@ -11,8 +11,8 @@ class OpenAIClient(BaseModelClient):
         self.model = model
         self._client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-    def chat(self, messages: list[dict]) -> str:
-        payload = [{"role": "system", "content": SYSTEM_PROMPT}, *messages]
+    def chat(self, messages: list[dict], system: str | None = None) -> str:
+        payload = [{"role": "system", "content": system or SYSTEM_PROMPT}, *messages]
         response = self._client.chat.completions.create(
             model=self.model,
             messages=payload,

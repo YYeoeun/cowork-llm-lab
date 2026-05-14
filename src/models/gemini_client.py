@@ -11,8 +11,11 @@ class GeminiClient(BaseModelClient):
         genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
         self.model_name = model
 
-    def chat(self, messages: list[dict]) -> str:
-        model = genai.GenerativeModel(self.model_name, system_instruction=SYSTEM_PROMPT)
+    def chat(self, messages: list[dict], system: str | None = None) -> str:
+        # Gemini의 system_instruction은 모델 생성 시 고정이라 호출마다 인스턴스화.
+        model = genai.GenerativeModel(
+            self.model_name, system_instruction=system or SYSTEM_PROMPT
+        )
         history = [
             {
                 "role": "model" if m["role"] == "assistant" else "user",

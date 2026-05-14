@@ -11,7 +11,7 @@ class OllamaClient(BaseModelClient):
         self.model = model
         self._client = Client(host=os.environ.get("OLLAMA_HOST"))
 
-    def chat(self, messages: list[dict]) -> str:
-        payload = [{"role": "system", "content": SYSTEM_PROMPT}, *messages]
+    def chat(self, messages: list[dict], system: str | None = None) -> str:
+        payload = [{"role": "system", "content": system or SYSTEM_PROMPT}, *messages]
         response = self._client.chat(model=self.model, messages=payload)
         return response["message"]["content"]
