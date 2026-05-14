@@ -1,6 +1,7 @@
 streamlit
 openai
 google-generativeai
+ollama
 pandas
 openpyxl
 python-dotenv
