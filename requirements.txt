@@ -1,8 +1,3 @@
 streamlit
-openai
-google-generativeai
-ollama
 pandas
 openpyxl
-rapidfuzz
-python-dotenv

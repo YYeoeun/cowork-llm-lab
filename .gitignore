@@ -1,27 +1,19 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
 
-# Virtual env
+# Virtual envs
 .venv/
 venv/
 env/
 
-# Env vars / secrets
+# Secrets / local config
 .env
-.env.local
 .streamlit/secrets.toml
 
-# Runtime data (업로드 파일)
-data/*
-!data/.gitkeep
-
-# IDE / OS
+# OS / editor
+.DS_Store
 .vscode/
 .idea/
-.DS_Store
-*.swp
